@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
@@ -14,46 +13,40 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Role implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Role {
     public static final String USER = "USER";
     public static final String ROLE_USER = "ROLE_USER";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_MODERATOR = "ROLE_MODERATOR";
 
+    private String name;
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     @Column(name = "ROLE_ID")
     private Long roleId;
 
-    private String name;
-
-    // bi-directional many-to-many association to User
-    @ManyToMany(mappedBy = "roles")
+    @ManyToMany
     private Set<User> users;
-
-    public Role(String name) {
-        this.name = name;
-    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Role)) return false;
         Role role = (Role) o;
-        return Objects.equals(name, role.name);
+        return Objects.equals(getName(), role.getName()) && Objects.equals(getRoleId(), role.getRoleId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(getName(), getRoleId());
     }
 
     @Override
     public String toString() {
         return "Role{" +
-                "roleId=" + roleId +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
+                ", roleId=" + roleId +
                 '}';
     }
 }

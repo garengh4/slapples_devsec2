@@ -1,6 +1,6 @@
 package com.slapples.controller;
 
-import com.slapples.dto.SignupRequest;
+import com.slapples.dto.SignUpRequest;
 import com.slapples.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import javax.validation.Valid;
 
 @Slf4j
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
@@ -26,11 +26,11 @@ public class AuthController {
     UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signupRequest) {
         try {
             userService.registerNewUser(signupRequest);
         } catch(Exception e) {
-            log.error("Exception ocurred: " + e);
+            log.error("Exception occurred: " + e);
             String badRegisterUserMessage = environment.getProperty("AuthController.SIGNUP_USER_FAIL");
             return new ResponseEntity<>(badRegisterUserMessage, HttpStatus.BAD_REQUEST);
         }

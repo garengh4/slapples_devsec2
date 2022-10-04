@@ -1,6 +1,7 @@
 package com.slapples.validator;
 
 import javax.validation.Constraint;
+import javax.validation.Payload;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -12,5 +13,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 public @interface PasswordMatches {
     String message() default "Password don't match";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
 
 }
