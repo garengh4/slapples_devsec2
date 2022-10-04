@@ -19,22 +19,22 @@ public class LocalUser extends User implements OAuth2User, OidcUser {
     private Map<String, Object> attributes;
     private com.slapples.model.User user;
 
-    public LocalUser(
-            final String userId, final String password, final boolean enabled, final boolean accountNonExpired, final boolean credentialsNonExpired,
+    public LocalUser(final String userId, final String password, final boolean enabled, final boolean accountNonExpired, final boolean credentialsNonExpired,
             final boolean accountNonLocked, final Collection<? extends GrantedAuthority> authorities, final com.slapples.model.User userInfo) {
-        this(userId, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities, userInfo, null, null);
 
+        this(userId, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities, userInfo, null, null);
     }
 
     public LocalUser(final String userID, final String password, final boolean enabled, final boolean accountNonExpired, final boolean credentialsNonExpired,
-                     final boolean accountNonLocked, final Collection<? extends GrantedAuthority> authorities, final com.slapples.model.User user, OidcIdToken idToken,
-                     OidcUserInfo userInfo) {
+                     final boolean accountNonLocked, final Collection<? extends GrantedAuthority> authorities, final com.slapples.model.User user,
+                     OidcIdToken idToken, OidcUserInfo userInfo) {
         super(userID, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.user = user;
         this.idToken = idToken;
         this.userInfo = userInfo;
     }
 
+    //TODO: being used by UserServiceImpl
     public static LocalUser create(com.slapples.model.User user, Map<String, Object> attributes, OidcIdToken idToken, OidcUserInfo userInfo) {
         LocalUser localUser = new LocalUser(user.getEmail(), user.getPassword(), user.isEnabled(),
                 true, true, true,

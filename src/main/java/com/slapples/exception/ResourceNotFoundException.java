@@ -1,10 +1,11 @@
 package com.slapples.exception;
 
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Getter
-@ResponseStatus
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class ResourceNotFoundException extends RuntimeException{
     private static final long serialVersionUID = 7004203416628447047L;
     private String resourceName;

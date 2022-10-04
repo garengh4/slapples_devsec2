@@ -1,6 +1,5 @@
 package com.slapples.dto;
 
-import com.nimbusds.openid.connect.sdk.claims.UserInfo;
 import lombok.Value;
 
 @Value
