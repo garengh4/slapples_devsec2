@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Optional;
 
-//TODO: unused class
+//Used by HttpCookieOAuth2AuthorizationReqauestRepository.java
 public class CookieUtils {
 
     public static Optional<Cookie> getCookie(HttpServletRequest request, String name) {
@@ -22,11 +22,11 @@ public class CookieUtils {
         }
         return Optional.empty();
     }
-    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
+    public static void addCookie(HttpServletResponse response, String name, String value, int cookieExpireSeconds) {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true); //TODO: CHECK?
-        cookie.setMaxAge(maxAge);
+        cookie.setMaxAge(cookieExpireSeconds);
         response.addCookie(cookie);
     }
     public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name){
