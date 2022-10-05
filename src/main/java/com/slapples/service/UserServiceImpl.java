@@ -7,11 +7,12 @@ import com.slapples.exception.OAuth2AuthenticationProcessingException;
 import com.slapples.exception.UserAlreadyExistAuthenticationException;
 import com.slapples.model.Role;
 import com.slapples.model.User;
-import com.slapples.repo.RoleRepository;
-import com.slapples.repo.UserRepository;
+import com.slapples.repository.RoleRepository;
+import com.slapples.repository.UserRepository;
 import com.slapples.security.oauth2.user.OAuth2UserInfo;
 import com.slapples.security.oauth2.user.OAuth2UserInfoFactory;
 import com.slapples.util.GeneralUtils;
+import dev.samstevens.totp.secret.SecretGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -23,7 +24,7 @@ import org.springframework.util.StringUtils;
 import java.util.*;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -34,22 +35,24 @@ public class UserServiceImpl implements UserService{
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private SecretGenerator secretGenerator;
+
     @Override
-    @Transactional(value="transactionManager")
+    @Transactional(value = "transactionManager")
     public User registerNewUser(SignUpRequest signupRequest) throws UserAlreadyExistAuthenticationException {
-        if(signupRequest.getUserId() != null && userRepository.existsById(signupRequest.getUserId())) {
+        if (signupRequest.getUserId() != null && userRepository.existsById(signupRequest.getUserId())) {
             throw new UserAlreadyExistAuthenticationException("User with userId " + signupRequest.getUserId() + " already exist");
-        } else if (userRepository.existsByEmail(signupRequest.getEmail())){
+        } else if (userRepository.existsByEmail(signupRequest.getEmail())) {
             throw new UserAlreadyExistAuthenticationException("user with emailId " + signupRequest.getEmail() + " already exist.");
-        } else {
-            User user = buildUser(signupRequest);
-            Date now = Calendar.getInstance().getTime();
-            user.setCreatedDate(now);
-            user.setModifiedDate(now);
-            user = userRepository.save(user);
-            userRepository.flush();
-            return user;
         }
+        User user = buildUser(signupRequest);
+        Date now = Calendar.getInstance().getTime();
+        user.setCreatedDate(now);
+        user.setModifiedDate(now);
+        user = userRepository.save(user);
+        userRepository.flush();
+        return user;
     }
 
     private User buildUser(final SignUpRequest formDTO) {
@@ -63,6 +66,10 @@ public class UserServiceImpl implements UserService{
         user.setProvider(formDTO.getSocialProvider().getProviderType());
         user.setEnabled(true);
         user.setProviderUserId(formDTO.getProviderUserId());
+        if(formDTO.isUsing2FA()) {
+            user.setUsing2FA(true);
+            user.setSecret(secretGenerator.generate());
+        }
         return user;
     }
 
@@ -96,7 +103,6 @@ public class UserServiceImpl implements UserService{
         } else {
             user = registerNewUser(userDetails);
         }
-
         return LocalUser.create(user, attributes, idToken, userInfo);
     }
 
@@ -109,7 +115,5 @@ public class UserServiceImpl implements UserService{
         return SignUpRequest.getBuilder().addProviderUserID(oAuth2UserInfo.getId()).addDisplayName(oAuth2UserInfo.getName()).addEmail(oAuth2UserInfo.getEmail())
                 .addSocialProvider(GeneralUtils.toSocialProvider(registrationId)).addPassword("changeit").build();
     }
-
-
 
 }

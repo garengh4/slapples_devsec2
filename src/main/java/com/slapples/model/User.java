@@ -45,10 +45,18 @@ public class User implements Serializable {
 
     private String provider;
 
+    @Column(name = "USING_2FA")
+    private boolean using2FA;
+
+    private String secret;
+
+
     // bi-directional many-to-many association to Role
     @JsonIgnore
     @ManyToMany
     @JoinTable(name = "user_role", joinColumns = { @JoinColumn(name = "USER_ID") }, inverseJoinColumns = { @JoinColumn(name = "ROLE_ID") })
     private Set<Role> roles;
+
+
 
 }

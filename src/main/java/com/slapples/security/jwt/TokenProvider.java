@@ -13,26 +13,31 @@ import java.util.Date;
 
 @Service
 public class TokenProvider {
+    public static final long TEMP_TOKEN_VALIDITY_IN_MILLIS = 300000;
+    private static final String AUTHENTICATED = "authenticated";
     private static final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
     private AppProperties appProperties;
 
     public TokenProvider(AppProperties appProperties) {
         this.appProperties = appProperties;
     }
-    public String createToken(Authentication authentication) {
-        LocalUser userPrincipal = (LocalUser) authentication.getPrincipal();
 
+    public String createToken(LocalUser userPrincipal, boolean authenticated) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + appProperties.getAuth().getTokenExpirationMsec());
-
-        return Jwts.builder().setSubject(Long.toString(userPrincipal.getUser().getId())).setIssuedAt(new Date()).setExpiration(expiryDate)
+        Date expiryDate = new Date(now.getTime() + (authenticated ? appProperties.getAuth().getTokenExpirationMsec() : TEMP_TOKEN_VALIDITY_IN_MILLIS));
+        return Jwts.builder().setSubject(Long.toString(userPrincipal.getUser().getId()))
+                .claim(AUTHENTICATED, authenticated).setIssuedAt(new Date()).setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, appProperties.getAuth().getTokenSecret()).compact();
     }
 
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(appProperties.getAuth().getTokenSecret()).parseClaimsJws(token).getBody();
-
         return Long.parseLong(claims.getSubject());
+    }
+
+    public Boolean isAuthenticated(String token) {
+        Claims claims = Jwts.parser().setSigningKey(appProperties.getAuth().getTokenSecret()).parseClaimsJws(token).getBody();
+        return claims.get(AUTHENTICATED, Boolean.class);
     }
 
     public boolean validateToken(String authToken) {

@@ -34,7 +34,7 @@ public class LocalUser extends User implements OAuth2User, OidcUser {
         this.userInfo = userInfo;
     }
 
-    //TODO: being used by UserServiceImpl
+    //For UserServiceImpl
     public static LocalUser create(com.slapples.model.User user, Map<String, Object> attributes, OidcIdToken idToken, OidcUserInfo userInfo) {
         LocalUser localUser = new LocalUser(user.getEmail(), user.getPassword(), user.isEnabled(),
                 true, true, true,

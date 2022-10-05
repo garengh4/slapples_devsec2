@@ -1,19 +1,24 @@
 package com.slapples.config;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 
-import com.slapples.dto.SocialProvider;
-import com.slapples.model.Role;
-import com.slapples.model.User;
-import com.slapples.repo.RoleRepository;
-import com.slapples.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.slapples.dto.SocialProvider;
+import com.slapples.model.Role;
+import com.slapples.model.User;
+import com.slapples.repository.RoleRepository;
+import com.slapples.repository.UserRepository;
+
+
+
 
 @Component
 public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
@@ -39,12 +44,12 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
         Role userRole = createRoleIfNotFound(Role.ROLE_USER);
         Role adminRole = createRoleIfNotFound(Role.ROLE_ADMIN);
         Role modRole = createRoleIfNotFound(Role.ROLE_MODERATOR);
-        createUserIfNotFound("admin@javachinna.com", Set.of(userRole, adminRole, modRole));
+        createUserIfNotFound("admin@slapples.com", Set.of(userRole, adminRole, modRole));
         alreadySetup = true;
     }
 
     @Transactional
-    User createUserIfNotFound(final String email, Set<Role> roles) {
+    private final User createUserIfNotFound(final String email, Set<Role> roles) {
         User user = userRepository.findByEmail(email);
         if (user == null) {
             user = new User();
@@ -63,11 +68,10 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
     }
 
     @Transactional
-    Role createRoleIfNotFound(final String name) {
+    private final Role createRoleIfNotFound(final String name) {
         Role role = roleRepository.findByName(name);
         if (role == null) {
-            role.setName(name);
-            role = roleRepository.save(role);
+            role = roleRepository.save(new Role(name));
         }
         return role;
     }

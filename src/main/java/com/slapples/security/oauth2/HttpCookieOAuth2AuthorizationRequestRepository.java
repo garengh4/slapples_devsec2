@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 
 // class is responsible fore storing and retrieving OAuth2 authorization request and redirect_uri of the Angular client in the cookies
 
-
 @Component
 public class HttpCookieOAuth2AuthorizationRequestRepository implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 

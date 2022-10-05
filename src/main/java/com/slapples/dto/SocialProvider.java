@@ -15,7 +15,7 @@ public enum SocialProvider {
         return providerType;
     }
 
-    SocialProvider(String providerType) {
+    SocialProvider(final String providerType) {
         this.providerType = providerType;
     }
 }

@@ -43,9 +43,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } catch(AuthenticationException e) {
             throw e;
         } catch(Exception e) {
+            e.printStackTrace();
             throw new OAuth2AuthenticationProcessingException(e.getMessage(), e.getCause());
         }
-
     }
     @SuppressWarnings({"rawtypes","unchecked"})
     public void populateEmailAddressFromLinkedin(OAuth2UserRequest oAuth2UserRequest, Map<String, Object> attributes) {

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
     public RestResponseEntityExceptionHandler() {
+        super();
     }
 
     @Override
@@ -32,7 +33,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
                 return e.getObjectName() + " : " + e.getDefaultMessage();
             }
         }).collect(Collectors.joining(", "));
-        //TODO: write new class?
         return handleExceptionInternal(ex, new ApiResponse(false, error), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 }

@@ -1,6 +1,7 @@
 package com.slapples.security.oauth2;
 
 import com.slapples.config.AppProperties;
+import com.slapples.dto.LocalUser;
 import com.slapples.exception.BadRequestException;
 import com.slapples.security.jwt.TokenProvider;
 
@@ -23,8 +24,11 @@ import static com.slapples.security.oauth2.HttpCookieOAuth2AuthorizationRequestR
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
     private TokenProvider tokenProvider;
+
     private AppProperties appProperties;
+
     private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Autowired
@@ -57,8 +61,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
 
         String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
-
-        String token = tokenProvider.createToken(authentication);
+        LocalUser user = (LocalUser) authentication.getPrincipal();
+        String token = tokenProvider.createToken(user, true);
 
         return UriComponentsBuilder.fromUriString(targetUrl).queryParam("token", token).build().toUriString();
     }
@@ -72,8 +76,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         URI clientRedirectUri = URI.create(uri);
 
         return appProperties.getOauth2().getAuthorizedRedirectUris().stream().anyMatch(authorizedRedirectUri -> {
-            // Only validate host and port. Let the clients use different paths if they want
-            // to
+            // Only validate host and port. Let the clients use different paths if they want to
             URI authorizedURI = URI.create(authorizedRedirectUri);
             if (authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost()) && authorizedURI.getPort() == clientRedirectUri.getPort()) {
                 return true;

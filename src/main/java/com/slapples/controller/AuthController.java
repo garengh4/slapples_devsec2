@@ -1,16 +1,17 @@
 package com.slapples.controller;
 
-import com.slapples.dto.JwtAuthenticationResponse;
-import com.slapples.dto.LocalUser;
-import com.slapples.dto.LoginRequest;
-import com.slapples.dto.SignUpRequest;
+import com.slapples.config.CurrentUser;
+import com.slapples.dto.*;
+import com.slapples.exception.UserAlreadyExistAuthenticationException;
+import com.slapples.model.User;
 import com.slapples.security.jwt.TokenProvider;
 import com.slapples.service.UserService;
 import com.slapples.util.GeneralUtils;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,9 +20,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.core.env.Environment;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+
+import dev.samstevens.totp.code.CodeVerifier;
+import dev.samstevens.totp.exceptions.QrGenerationException;
+import dev.samstevens.totp.qr.QrData;
+import dev.samstevens.totp.qr.QrDataFactory;
+import dev.samstevens.totp.qr.QrGenerator;
+import lombok.extern.slf4j.Slf4j;
+
+import static dev.samstevens.totp.util.Utils.getDataUriForImage;
 
 @Slf4j
 @RestController
@@ -29,37 +39,62 @@ import javax.validation.Valid;
 public class AuthController {
 
     @Autowired
-    Environment environment;
-
-    @Autowired
-    TokenProvider tokenProvider;
-
-    @Autowired
     AuthenticationManager authenticationManager;
 
     @Autowired
     UserService userService;
 
+    @Autowired
+    TokenProvider tokenProvider;
+
+    @Autowired
+    private QrDataFactory qrDataFactory;
+
+    @Autowired
+    private QrGenerator qrGenerator;
+
+    @Autowired
+    private CodeVerifier verifier;
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.createToken(authentication);
         LocalUser localUser = (LocalUser) authentication.getPrincipal();
-        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt, GeneralUtils.buildUserInfo(localUser)));
+        boolean isAuthenticated = !localUser.getUser().isUsing2FA();
+        String jwt = tokenProvider.createToken(localUser, isAuthenticated);
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt, isAuthenticated,
+                isAuthenticated ? GeneralUtils.buildUserInfo(localUser) : null
+                ));
     }
-
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signupRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
         try {
-            userService.registerNewUser(signupRequest);
-        } catch(Exception e) {
-            log.error("Exception occurred: " + e);
-            String badRegisterUserMessage = environment.getProperty("AuthController.SIGNUP_USER_FAIL");
-            return new ResponseEntity<>(badRegisterUserMessage, HttpStatus.BAD_REQUEST);
+            User user = userService.registerNewUser(signUpRequest);
+            if (signUpRequest.isUsing2FA()) {
+                QrData data = qrDataFactory.newBuilder().label(user.getEmail()).secret(user.getSecret()).issuer("JavaChinna").build();
+                // Generate the QR code image data as a base64 string which can be used in an <img> tag:
+                String qrCodeImage = getDataUriForImage(qrGenerator.generate(data), qrGenerator.getImageMimeType());
+                return ResponseEntity.ok().body(new SignUpResponse(true, qrCodeImage));
+            }
+        } catch (UserAlreadyExistAuthenticationException e) {
+            log.error("Exception Ocurred", e);
+            return new ResponseEntity<>(new ApiResponse(false, "Email Address already in use!"), HttpStatus.BAD_REQUEST);
+        } catch (QrGenerationException e) {
+            log.error("QR Generation Exception Ocurred", e);
+            return new ResponseEntity<>(new ApiResponse(false, "Unable to generate QR code!"), HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok().body(environment.getProperty("AuthController.SIGNUP_USER_SUCCESS"));
+        return ResponseEntity.ok().body(new ApiResponse(true, "User registered successfully"));
     }
 
+    @PostMapping("/verify")
+    @PreAuthorize("hasRole('PRE_VERIFICATION_USER')")
+    public ResponseEntity<?> verifyCode(@NotEmpty @RequestBody String code, @CurrentUser LocalUser user) {
+        if (!verifier.isValidCode(user.getUser().getSecret(), code)) {
+            return new ResponseEntity<>(new ApiResponse(false, "Invalid Code!"), HttpStatus.BAD_REQUEST);
+        }
+        String jwt = tokenProvider.createToken(user, true);
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt, true, GeneralUtils.buildUserInfo(user)));
+    }
 }

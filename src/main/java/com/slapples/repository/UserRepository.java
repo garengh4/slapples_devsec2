@@ -1,4 +1,4 @@
-package com.slapples.repo;
+package com.slapples.repository;
 
 import com.slapples.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;

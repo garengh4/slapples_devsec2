@@ -25,7 +25,7 @@ public class SignUpRequest {
     @NotEmpty
     private String matchingPassword;
 
-    private boolean using2FA; // TODO: remove?
+    private boolean using2FA;
     private SocialProvider socialProvider;
 
     public SignUpRequest(String providerUserId, String displayName, String email, String password, SocialProvider socialProvider) {
@@ -36,7 +36,7 @@ public class SignUpRequest {
         this.socialProvider = socialProvider;
     }
 
-    //TODO: being used by UserServiceImpl
+    // being used by UserServiceImpl
     public static Builder getBuilder() {
         return new Builder();
     }

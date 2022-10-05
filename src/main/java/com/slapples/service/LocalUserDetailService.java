@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 @Service("localUserDetailService")
-public class LocalUserDetailService  implements UserDetailsService {
+public class LocalUserDetailService implements UserDetailsService {
 
     @Autowired
     private UserService userService;
@@ -27,7 +27,6 @@ public class LocalUserDetailService  implements UserDetailsService {
         return createLocalUser(user);
     }
 
-    //TODO: unused
     @Transactional
     public LocalUser loadUserById(Long id) {
         User user = userService.findUserById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
