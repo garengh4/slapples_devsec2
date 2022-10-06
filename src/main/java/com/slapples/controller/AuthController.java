@@ -61,11 +61,9 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         LocalUser localUser = (LocalUser) authentication.getPrincipal();
-        boolean isAuthenticated = !localUser.getUser().isUsing2FA();
-        String jwt = tokenProvider.createToken(localUser, isAuthenticated);
-        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt, isAuthenticated,
-                isAuthenticated ? GeneralUtils.buildUserInfo(localUser) : null
-                ));
+        boolean authenticated = !localUser.getUser().isUsing2FA();
+        String jwt = tokenProvider.createToken(localUser, authenticated);
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt, authenticated, authenticated ? GeneralUtils.buildUserInfo(localUser) : null));
     }
 
     @PostMapping("/signup")
@@ -74,7 +72,8 @@ public class AuthController {
             User user = userService.registerNewUser(signUpRequest);
             if (signUpRequest.isUsing2FA()) {
                 QrData data = qrDataFactory.newBuilder().label(user.getEmail()).secret(user.getSecret()).issuer("JavaChinna").build();
-                // Generate the QR code image data as a base64 string which can be used in an <img> tag:
+                // Generate the QR code image data as a base64 string which can
+                // be used in an <img> tag:
                 String qrCodeImage = getDataUriForImage(qrGenerator.generate(data), qrGenerator.getImageMimeType());
                 return ResponseEntity.ok().body(new SignUpResponse(true, qrCodeImage));
             }

@@ -1,7 +1,6 @@
 package com.slapples.config;
 
-import com.slapples.security.jwt.TokenAuthenticationFilter;
-import com.slapples.security.oauth2.*;
+import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -26,20 +25,27 @@ import org.springframework.security.oauth2.core.http.converter.OAuth2AccessToken
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
+import com.slapples.security.jwt.TokenAuthenticationFilter;
+import com.slapples.security.oauth2.CustomOAuth2UserService;
+import com.slapples.security.oauth2.CustomOidcUserService;
+import com.slapples.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
+import com.slapples.security.oauth2.OAuth2AccessTokenResponseConverterWithDefaults;
+import com.slapples.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.slapples.security.oauth2.OAuth2AuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Autowired
-    CustomOidcUserService customOidcUserService;
 
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
+
+    @Autowired
+    CustomOidcUserService customOidcUserService;
 
     @Autowired
     private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
@@ -55,14 +61,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.cors().and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .csrf().disable().formLogin().disable().httpBasic().disable().exceptionHandling().authenticationEntryPoint(new RestAuthenticationEntryPoint()).and()
-                .authorizeRequests().antMatchers("/", "/error", "/api/all", "/api/auth/**", "/oauth2/**").permitAll().anyRequest().authenticated().and()
-                .oauth2Login().authorizationEndpoint().authorizationRequestRepository(cookieAuthorizationRequestRepository()).and()
-                .redirectionEndpoint().and()
-                .userInfoEndpoint().oidcUserService(customOidcUserService).userService(customOAuth2UserService).and()
-                .tokenEndpoint().accessTokenResponseClient(authorizationCodeTokenResponseClient()).and()
+        http.cors().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().csrf().disable().formLogin().disable().httpBasic().disable()
+                .exceptionHandling().authenticationEntryPoint(new RestAuthenticationEntryPoint()).and().authorizeRequests()
+                .antMatchers("/", "/error", "/api/all", "/api/auth/**", "/oauth2/**").permitAll().anyRequest().authenticated().and().oauth2Login().authorizationEndpoint()
+                .authorizationRequestRepository(cookieAuthorizationRequestRepository()).and().redirectionEndpoint().and().userInfoEndpoint().oidcUserService(customOidcUserService)
+                .userService(customOAuth2UserService).and().tokenEndpoint().accessTokenResponseClient(authorizationCodeTokenResponseClient()).and()
                 .successHandler(oAuth2AuthenticationSuccessHandler).failureHandler(oAuth2AuthenticationFailureHandler);
 
         // Add our custom Token based authentication filter
@@ -111,6 +114,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         tokenResponseClient.setRestOperations(restTemplate);
         return tokenResponseClient;
     }
-
-
 }

@@ -1,16 +1,21 @@
 package com.slapples.service;
 
-import com.slapples.dto.LocalUser;
-import com.slapples.exception.ResourceNotFoundException;
-import com.slapples.model.User;
-import com.slapples.util.GeneralUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
+import com.slapples.dto.LocalUser;
+import com.slapples.exception.ResourceNotFoundException;
+import com.slapples.model.User;
+import com.slapples.util.GeneralUtils;
 
+/**
+ *
+ * @author Chinna
+ *
+ */
 @Service("localUserDetailService")
 public class LocalUserDetailService implements UserDetailsService {
 
@@ -33,9 +38,11 @@ public class LocalUserDetailService implements UserDetailsService {
         return createLocalUser(user);
     }
 
+    /**
+     * @param user
+     * @return
+     */
     private LocalUser createLocalUser(User user) {
-        return new LocalUser(user.getEmail(), user.getPassword(), user.isEnabled(), true, true, true,
-                GeneralUtils.buildSimpleGrantedAuthorities(user.getRoles()), user);
+        return new LocalUser(user.getEmail(), user.getPassword(), user.isEnabled(), true, true, true, GeneralUtils.buildSimpleGrantedAuthorities(user.getRoles()), user);
     }
-
 }

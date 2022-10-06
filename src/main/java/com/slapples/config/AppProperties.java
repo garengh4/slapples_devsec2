@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO: unused class
+
 @Component
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
@@ -43,7 +43,7 @@ public class AppProperties {
         }
     }
     // -----------------------------------------------------------------------------------------------------------------
-    public static  final class OAuth2 {
+    public static final class OAuth2 {
         private List<String> authorizedRedirectUris = new ArrayList<>();
 
         public List<String> getAuthorizedRedirectUris() {

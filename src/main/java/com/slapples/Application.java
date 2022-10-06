@@ -6,7 +6,8 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@SpringBootApplication
+
+@SpringBootApplication(scanBasePackages = "com.slapples")
 @EnableJpaRepositories
 @EnableTransactionManagement
 public class Application extends SpringBootServletInitializer {

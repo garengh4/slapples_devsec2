@@ -1,7 +1,7 @@
 package com.slapples.dto;
 
-
 import com.slapples.util.GeneralUtils;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.Map;
 
 public class LocalUser extends User implements OAuth2User, OidcUser {
-    private static final long serialVersionUID = -2845160792248762779L;
     private final OidcIdToken idToken;
     private final OidcUserInfo userInfo;
     private Map<String, Object> attributes;
