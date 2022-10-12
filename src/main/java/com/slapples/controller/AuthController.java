@@ -71,7 +71,7 @@ public class AuthController {
         try {
             User user = userService.registerNewUser(signUpRequest);
             if (signUpRequest.isUsing2FA()) {
-                QrData data = qrDataFactory.newBuilder().label(user.getEmail()).secret(user.getSecret()).issuer("JavaChinna").build();
+                QrData data = qrDataFactory.newBuilder().label(user.getEmail()).secret(user.getSecret()).issuer("slapples").build();
                 // Generate the QR code image data as a base64 string which can
                 // be used in an <img> tag:
                 String qrCodeImage = getDataUriForImage(qrGenerator.generate(data), qrGenerator.getImageMimeType());

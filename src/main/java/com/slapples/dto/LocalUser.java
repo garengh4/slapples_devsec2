@@ -18,15 +18,14 @@ public class LocalUser extends User implements OAuth2User, OidcUser {
     private Map<String, Object> attributes;
     private com.slapples.model.User user;
 
-    public LocalUser(final String userId, final String password, final boolean enabled, final boolean accountNonExpired, final boolean credentialsNonExpired,
-            final boolean accountNonLocked, final Collection<? extends GrantedAuthority> authorities, final com.slapples.model.User userInfo) {
-
-        this(userId, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities, userInfo, null, null);
+    public LocalUser(final String userID, final String password, final boolean enabled, final boolean accountNonExpired, final boolean credentialsNonExpired,
+                     final boolean accountNonLocked, final Collection<? extends GrantedAuthority> authorities, final com.slapples.model.User user) {
+        this(userID, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities, user, null, null);
     }
 
     public LocalUser(final String userID, final String password, final boolean enabled, final boolean accountNonExpired, final boolean credentialsNonExpired,
-                     final boolean accountNonLocked, final Collection<? extends GrantedAuthority> authorities, final com.slapples.model.User user,
-                     OidcIdToken idToken, OidcUserInfo userInfo) {
+                     final boolean accountNonLocked, final Collection<? extends GrantedAuthority> authorities, final com.slapples.model.User user, OidcIdToken idToken,
+                     OidcUserInfo userInfo) {
         super(userID, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.user = user;
         this.idToken = idToken;
@@ -35,17 +34,25 @@ public class LocalUser extends User implements OAuth2User, OidcUser {
 
     //For UserServiceImpl
     public static LocalUser create(com.slapples.model.User user, Map<String, Object> attributes, OidcIdToken idToken, OidcUserInfo userInfo) {
-        LocalUser localUser = new LocalUser(user.getEmail(), user.getPassword(), user.isEnabled(),
-                true, true, true,
-                GeneralUtils.buildSimpleGrantedAuthorities(user.getRoles()), user, idToken, userInfo);
+        LocalUser localUser = new LocalUser(user.getEmail(), user.getPassword(), user.isEnabled(), true, true, true, GeneralUtils.buildSimpleGrantedAuthorities(user.getRoles()),
+                user, idToken, userInfo);
         localUser.setAttributes(attributes);
         return localUser;
     }
 
-    private void setAttributes(Map<String, Object> attributes) {
+    public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
 
+    @Override
+    public String getName() {
+        return this.user.getDisplayName();
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return this.attributes;
+    }
 
     @Override
     public Map<String, Object> getClaims() {
@@ -60,16 +67,6 @@ public class LocalUser extends User implements OAuth2User, OidcUser {
     @Override
     public OidcIdToken getIdToken() {
         return this.idToken;
-    }
-
-    @Override
-    public Map<String, Object> getAttributes() {
-        return this.attributes;
-    }
-
-    @Override
-    public String getName() {
-        return this.user.getDisplayName();
     }
 
     public com.slapples.model.User getUser() {
